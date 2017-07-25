@@ -1,0 +1,104 @@
+---
+title: "WordCloud in R"
+author: "Amanpreet Singh"
+date: "July 20, 2017"
+output: html_document
+---
+
+```{r}
+#install.packages("tm")
+library(tm)
+```
+
+
+```{r}
+#install.packages("SnowballC")
+library(SnowballC)
+```
+
+
+```{r}
+#install.packages("wordcloud")
+library(wordcloud)
+```
+
+
+```{r}
+#reading data
+text_data <- readLines("textfile.txt")
+```
+
+
+```{r}
+#create a corpus of the text in the data
+data_corpus <- Corpus(VectorSource(text_data))
+
+#inspect the data
+#inspect(data_corpus)
+```
+
+###Text mining steps
+
+```{r}
+#Replacing "/", "@" and "|" with space:
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
+data_corpus <- tm_map(data_corpus, toSpace, "/")
+data_corpus <- tm_map(data_corpus, toSpace, "@")
+data_corpus <- tm_map(data_corpus, toSpace, "\\|")
+```
+
+
+```{r}
+# Convert the text to lower case
+data_corpus <- tm_map(data_corpus, content_transformer(tolower))
+```
+
+
+```{r}
+# Remove numbers
+data_corpus <- tm_map(data_corpus, removeNumbers)
+```
+
+
+```{r}
+# Remove english common stopwords
+data_corpus <- tm_map(data_corpus, removeWords, stopwords('english'))
+```
+
+
+```{r}
+# Remove punctuations
+data_corpus <- tm_map(data_corpus, removePunctuation)
+```
+
+
+```{r}
+# Eliminate extra white spaces
+data_corpus <- tm_map(data_corpus, stripWhitespace)
+```
+
+```{r}
+#Next, we will perform stemming. This means that all the words are converted to their stem (Ex: learning -> #learn, walked -> walk, etc.). This will ensure that different forms of the word are converted to the same form #and plotted only once in the wordcloud.
+data_corpus <- tm_map(data_corpus, stemDocument)
+```
+
+
+```{r}
+#Build a term-document matrix
+#Document matrix is a table containing the frequency of the words. Column names are words and row names are #documents.
+dtm <- TermDocumentMatrix(data_corpus)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+#head(d, 10)
+```
+
+```{r}
+
+#Now, we will plot the wordcloud.
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=1000, random.order=FALSE,
+          colors=brewer.pal(8, "Dark2"))
+
+```
+
