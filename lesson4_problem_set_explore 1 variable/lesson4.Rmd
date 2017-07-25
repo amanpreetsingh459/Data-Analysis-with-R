@@ -1,0 +1,220 @@
+---
+title: "lesson4"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r}
+#load the diamonds data set in rstudio
+library(ggplot2)
+data("diamonds")
+
+summary(diamonds)
+diamonds   #gives the number of observations and the number of variables in the dataset
+names(diamonds)
+?diamonds
+```
+
+```{r}
+###histogram of the price of all the diamonds
+
+ggplot(aes(x = price), data = diamonds) + 
+  geom_histogram(binwidth = 20, color = I('green')) + 
+  xlab("Price of the diamonds") + 
+  ylab("Number of diamonds in the sample") + 
+  scale_x_continuous(breaks = seq(0, 18823, 2000), limits = c(326, 18823))
+```
+
+
+```{r}
+###Price histogram summary
+summary(diamonds$price)
+```
+
+
+```{r}
+### count of diamonds cost less than $500
+table(diamonds$price < 500, exclude = FALSE)
+
+### count of diamonds cost less than $250
+table(diamonds$price < 250, exclude = FALSE)
+
+### count of diamonds cost $15000 or more
+table(diamonds$price >= 15000, exclude = FALSE)
+```
+
+
+```{r}
+###histogram of the price of all the diamonds
+
+ggplot(aes(x = price), data = diamonds) + 
+  geom_histogram(binwidth = 20, color = I('green')) + 
+  xlab("Price of the diamonds") + 
+  ylab("Number of diamonds in the sample") + 
+  scale_x_continuous(breaks = seq(0, 18823, 1500), limits = c(326, 18823))
+```
+
+
+```{r}
+# Breaking out the histogram of diamond prices by cut.
+
+ggplot(aes(price), data = diamonds) + 
+  geom_histogram(binwidth = 20, color = I('blue')) + 
+  xlab("Price of the diamonds") + 
+  ylab("Number of diamonds in the sample") + 
+  scale_x_continuous(breaks = seq(0, 18823, 4000), limits = c(326, 18823)) +
+  facet_wrap(~cut)
+```
+
+
+```{r}
+#Which cut has the  highest priced diamond : premium
+#Which cut has the  lowest priced diamond : premium, ideal
+#Which cut has the  lowest median priced diamond : ideal
+by(diamonds$price, diamonds$cut, summary)
+```
+
+
+```{r}
+ggplot(aes(price), data = diamonds) + 
+  geom_histogram(binwidth = 20, color = I('blue')) + 
+  xlab("Price of the diamonds") + 
+  ylab("Number of diamonds in the sample") + 
+  scale_x_continuous(breaks = seq(0, 18823, 4000), limits = c(326, 18823)) +
+  facet_wrap(~cut, scales = "free")
+```
+
+
+```{r}
+ggplot(aes(price/carat), data = diamonds) + 
+  geom_histogram() + 
+  xlab("Price of the diamonds per carat") + 
+  ylab("Number of diamonds in the sample") + 
+  scale_x_log10() +
+  facet_wrap(~cut, scales = "free")
+```
+
+
+
+```{r}
+# Investigate the price of diamonds using box plots,
+# numerical summaries, and one of the following categorical
+# variables: cut, clarity, or color.
+library(gridExtra)
+p1 = ggplot(aes(x = cut, y = price), data = diamonds) +
+  geom_boxplot(aes(fill = cut))
+p2 = ggplot(aes(x = clarity, y = price), data = diamonds) +
+  geom_boxplot(aes(fill = clarity))
+p3 = ggplot(aes(x = color, y = price), data = diamonds) +
+  geom_boxplot(aes(fill = color))
+
+grid.arrange(p1, p2, p3, ncol=1)
+
+```
+
+
+
+```{r}
+#what is the price range for the middle 50% of the diamonds with color D
+#what is the price range for the middle 50% of the diamonds with color J
+by(diamonds$price, diamonds$color, summary)
+#what is the IQR for the diamonds with the best color
+IQR(subset(diamonds, color=="D")$price)
+
+#what is the IQR for the diamonds with the worst color
+IQR(subset(diamonds, color=="J")$price)
+
+```
+
+
+```{r}
+
+#price per carat of diamonds across the different colors of diamonds using boxplots.
+ggplot(aes(x = color, y = price/carat), data = diamonds) + 
+  geom_boxplot(aes(fill = color)) + 
+  ylab("Price of the diamonds per carat") + 
+  xlab("Color")
+
+#ggsave('boxplot_PricePerCaratByColor.png')
+```
+
+
+```{r}
+#investigating weight of the diamonds(carat) using a frequency polygon
+ggplot(aes(x = carat), data = diamonds) +
+  geom_freqpoly(binwidth=0.1) +
+  scale_x_continuous(limits = c(0.2, 5.1), breaks = seq(0,5.2, 0.2))
+```
+
+## Gapminder dataset Exersize
+```{r}
+#The data has been taken from the Gapminder.com. It is about the employment rate (in %) 
+#of the population of various countries aged from 15 to 24 years. 
+#install.packages("xlsx")
+library("xlsx")    #loading the xlsx library(to read the excel files in R)
+#reading the excel data in employment_excel_data variable
+employment_excel_data <- read.xlsx("data_15-24 employment_rate.xlsx", 1)
+#getting all the column names
+names(employment_excel_data)
+#plotting the relationship between the employment of the year 1991 and 2007
+ggplot(aes(x = X1991, y = X2007), data = employment_excel_data) +
+  geom_point() + 
+  xlab("Employment % during year 1991") + 
+  ylab("Employment % during year 2007")
+
+ggsave('GapminderExersizeimage1.png')
+```
+
+It shows the sort of "weak linear relationship" between the year 1991 and 2007. below chart depicts more clarification about the fact
+
+```{r}
+ggplot(aes(x = X1991, y = X2007), data = employment_excel_data) +
+  geom_point() + 
+  xlab("Employment % during year 1991") + 
+  ylab("Employment % during year 2007") +
+  geom_smooth(method='lm')
+
+ggsave('GapminderExersizeimage2.png')
+```
+
+
+##Getting summary statistics about both the years
+```{r}
+summary(employment_excel_data$X1991)
+```
+
+
+```{r}
+summary(employment_excel_data$X2007)
+```
+
+```{r}
+#calculating correlation coefficient
+cor.test(employment_excel_data$X1991, employment_excel_data$X2007, method = 'pearson')
+
+```
+
+
+#So there is strong correlation between the employment rates of both the years : 0.87
+
+```{r}
+ggplot(aes(X1991,X2007,color = Total.15.24.employment.to.population....),data = subset(employment_excel_data, 
+!is.na(Total.15.24.employment.to.population....)& 
+!is.na(2007)& !is.na(X1991)))+
+geom_point(alpha = 0.05)+
+geom_smooth()+
+xlab("Percent of Land Area")+
+ylab("Export Percent of GDP")
+```
+
+
